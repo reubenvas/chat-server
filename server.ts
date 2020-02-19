@@ -22,7 +22,7 @@ io.on('connection', async (socket) => {
     socket.emit('connection');
     console.log('New client connected with id:', socket.id);
     await clientManager.addClient({ socketId: socket.id, nickname: 'babar' });
-    await clientManager.addClientNickname(socket.id, 'nicky');
+    await clientManager.setNickname(socket.id, 'nicky');
     console.log('new user joined so showing all clients:', clientManager.getAllClients());
 
 
@@ -34,8 +34,30 @@ io.on('connection', async (socket) => {
         io.emit('message', { content: msg, sender: clientNickname, date: Date.now() });
     });
 
-    socket.on('nickname', (nickname) => {
-        console.log('received new sexy nickname:', nickname);
+    socket.on('set nickname', (nickname: string) => {
+        console.log('received new sexy nickname:', nickname, 'From:', socket.id);
+
+        // make a json file or object with these error terms and messages and also if its error-, warning- or success- message
+        if (clientManager.getAllClients().map((client) => client.nickname).includes(nickname)) {
+            // socket.emit('nickname invalid', nickname, 'Reason for invalidity');
+            socket.emit('nickname invalid', nickname, 'This nickname is alredy taken by another visitor');
+            return;
+        }
+        if (nickname.length < 3) {
+            socket.emit('nickname invalid', nickname, 'This nickname is way too short');
+            return;
+        }
+        if (nickname.length > 6) {
+            socket.emit('nickname invalid', nickname, 'This nickname is way too long');
+            return;
+        }
+        if (!/^[A-Za-z]+$/.test(nickname)) {
+            socket.emit('nickname invalid', nickname, 'This nickname contains other characters than letters');
+            return;
+        }
+        socket.emit('nickname approved', nickname);
+        clientManager.setNickname(socket.id, nickname);
+        console.log(clientManager.getAllClients());
         // check double!!
         // check if nickname is unique amongst the users here and in the client
         // * first in the client. Fetch the usernames and check, then send to server.
