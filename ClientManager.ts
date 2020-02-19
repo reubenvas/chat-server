@@ -4,7 +4,7 @@ type Client = {
 }
 
 export default class ClientManager {
-    clients: Client[] = [];
+    private clients: Client[] = [];
 
     addClient = (client: Client) => new Promise((res, rej) => {
         try {
@@ -15,7 +15,7 @@ export default class ClientManager {
         }
     });
 
-    addClientNickname = (clientId: Client['socketId'], nickname: string) => new Promise((res, rej) => {
+    setNickname = (clientId: Client['socketId'], nickname: string): Promise<string> => new Promise((res, rej) => {
         try {
             const index = this.clients.findIndex(({ socketId }) => socketId === clientId);
             this.clients[index].nickname = nickname;
@@ -36,7 +36,6 @@ export default class ClientManager {
         console.log('this is the index:', index);
         return this.clients[index];
     };
-
 
     getAllClients = () => this.clients;
 }
