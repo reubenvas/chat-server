@@ -1,20 +1,16 @@
-type Client = {
-    socketId: string;
-    nickname: string;
-    loginTime: number;
-    lastActivity?: number;
-}
+import Client from './Client';
+
 
 export default class ClientManager {
     private clients: Client[] = [];
 
-    private findClientIndex = (clientSocketId: string) => (
+    private findClientIndex = (clientSocketId: string): number => (
         this.clients.findIndex(({ socketId }) => socketId === clientSocketId)
     );
 
-    addClient = (client: Client) => new Promise((res, rej) => {
+    addClient = (socketId: string, socket: SocketIO.Socket): Promise<number | string> => new Promise((res, rej) => {
         try {
-            this.clients.push(client);
+            this.clients.push(new Client(socketId, socket));
             res(this.clients.length);
         } catch (err) {
             rej(err);
@@ -31,24 +27,29 @@ export default class ClientManager {
         }
     });
 
-    setLastActivity = (clientSocketId: Client['socketId'], timeStamp: number) => {
+    setLastActivity = (clientSocketId: Client['socketId'], timeStamp: number): void => {
         const index = this.findClientIndex(clientSocketId);
         this.clients[index].lastActivity = timeStamp;
     };
 
-    deleteClient = (clientSocketId: Client['socketId']) => {
+    setLoginTime = (clientSocketId: Client['socketId'], timeStamp: number): void => {
+        const index = this.findClientIndex(clientSocketId);
+        this.clients[index].loginTime = timeStamp;
+    };
+
+    deleteClient = (clientSocketId: Client['socketId']): void => {
         const index = this.findClientIndex(clientSocketId);
         this.clients.splice(index, 1);
     };
 
-    getClient = (clientSocketId: Client['socketId']) => {
-        console.log('all clients from getClient:', this.clients);
+    getClient = (clientSocketId: Client['socketId']): Client => {
         const index = this.findClientIndex(clientSocketId);
-        console.log('this is the index:', index);
         return this.clients[index];
     };
 
-    getAllClients = () => this.clients;
+
+
+    getAllClients = (): Client[] => this.clients;
 }
 
 

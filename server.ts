@@ -1,5 +1,5 @@
 import express from 'express';
-import socketServer from 'socket.io';
+import SocketIO from 'socket.io';
 import ClientManager from './ClientManager';
 import validation from './validation';
 
@@ -17,14 +17,14 @@ const server = app.listen(PORT, () => {
     console.log('Server running on port:', PORT);
 });
 
-const io = socketServer(server);
+const io = SocketIO(server);
 
 io.on('connection', async (socket) => {
+    console.log('welcome', socket.id);
     socket.emit('connection');
-    console.log('New client connected with id:', socket.id);
-    await clientManager.addClient({ socketId: socket.id, nickname: 'babar', loginTime: Date.now() });
-    await clientManager.setNickname(socket.id, 'nicky');
-    console.log('new user joined so showing all clients:', clientManager.getAllClients());
+    await clientManager.addClient(socket.id, socket);
+    // await clientManager.setNickname(socket.id, 'nicky');
+    clientManager.getClient(socket.id).nickname = 'marcus';
 
 
     socket.on('message', (msg: string) => {
@@ -41,9 +41,9 @@ io.on('connection', async (socket) => {
         const client = clientManager.getClient(socket.id);
         console.log(client.nickname);
         const clientNickname = client.nickname;
-        const sendTime = Date.now();
-        io.emit('new message', { content: msg, sender: clientNickname, date: sendTime });
-        clientManager.setLastActivity(socket.id, sendTime);
+        const timeStamp = Date.now();
+        io.emit('new message', { content: msg, sender: clientNickname, date: timeStamp });
+        clientManager.setLastActivity(socket.id, timeStamp);
     });
 
     socket.on('set nickname', (nickname: string) => {
@@ -76,8 +76,13 @@ io.on('connection', async (socket) => {
             return;
         }
         socket.emit('nickname approved', nickname);
+        const timeStamp = Date.now();
         clientManager.setNickname(socket.id, nickname);
-        console.log(clientManager.getAllClients());
+        clientManager.setLastActivity(socket.id, timeStamp);
+        clientManager.setLoginTime(socket.id, timeStamp);
+
+        clientManager.getClient(socket.id).startInactivityTimer();
+
         // check double!!
         // check if nickname is unique amongst the users here and in the client
         // * first in the client. Fetch the usernames and check, then send to server.
@@ -85,10 +90,8 @@ io.on('connection', async (socket) => {
         // send it back
     });
 
-    // console.log(client);
 
     socket.on('disconnect', () => {
-        console.log(clientManager.getAllClients());
         console.log('Client', socket.id, 'disconnected.');
         clientManager.deleteClient(socket.id);
     });
