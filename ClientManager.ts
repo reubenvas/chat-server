@@ -1,10 +1,16 @@
 type Client = {
     socketId: string;
     nickname: string;
+    loginTime: number;
+    lastActivity?: number;
 }
 
 export default class ClientManager {
     private clients: Client[] = [];
+
+    private findClientIndex = (clientSocketId: string) => (
+        this.clients.findIndex(({ socketId }) => socketId === clientSocketId)
+    );
 
     addClient = (client: Client) => new Promise((res, rej) => {
         try {
@@ -15,24 +21,29 @@ export default class ClientManager {
         }
     });
 
-    setNickname = (clientId: Client['socketId'], nickname: string): Promise<string> => new Promise((res, rej) => {
+    setNickname = (clientSocketId: Client['socketId'], nickname: string): Promise<string> => new Promise((res, rej) => {
         try {
-            const index = this.clients.findIndex(({ socketId }) => socketId === clientId);
+            const index = this.findClientIndex(clientSocketId);
             this.clients[index].nickname = nickname;
             res(nickname);
         } catch (err) {
             rej(err);
         }
-    })
+    });
 
-    deleteClient = (clientId: Client['socketId']) => {
-        const index = this.clients.indexOf(clientId as unknown as Client);
+    setLastActivity = (clientSocketId: Client['socketId'], timeStamp: number) => {
+        const index = this.findClientIndex(clientSocketId);
+        this.clients[index].lastActivity = timeStamp;
+    };
+
+    deleteClient = (clientSocketId: Client['socketId']) => {
+        const index = this.findClientIndex(clientSocketId);
         this.clients.splice(index, 1);
     };
 
-    getClient = (clientId: Client['socketId']) => {
+    getClient = (clientSocketId: Client['socketId']) => {
         console.log('all clients from getClient:', this.clients);
-        const index = this.clients.findIndex(({ socketId }) => socketId === clientId);
+        const index = this.findClientIndex(clientSocketId);
         console.log('this is the index:', index);
         return this.clients[index];
     };
@@ -58,3 +69,5 @@ export default class ClientManager {
 // module.exports = {
 //     addClient, getAllClients, deleteClient,
 // };
+
+// export default new ClientManager();

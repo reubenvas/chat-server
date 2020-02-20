@@ -4,7 +4,11 @@
         "node": true
     },
     "extends": [
-        "airbnb-base"
+        "airbnb-base",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
     "globals": {
         "Atomics": "readonly",
@@ -16,15 +20,14 @@
         "sourceType": "module"
     },
     "plugins": [
+        "@typescript-eslint"
     ],
     "settings": {
         "import/resolver": {
             "node": {
                 "extensions": [
                     ".js",
-                    ".jsx",
-                    ".ts",
-                    ".tsx"
+                    ".ts"
                 ]
             }
         }
@@ -39,9 +42,7 @@
             "ignorePackages",
             {
                 "js": "never",
-                "jsx": "never",
-                "ts": "never",
-                "tsx": "never"
+                "ts": "never"
             }
         ]
     }
