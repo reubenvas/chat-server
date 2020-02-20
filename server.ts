@@ -1,6 +1,7 @@
 import express from 'express';
 import socketServer from 'socket.io';
 import ClientManager from './ClientManager';
+import validation from './validation';
 
 const clientManager = new ClientManager();
 
@@ -21,24 +22,43 @@ const io = socketServer(server);
 io.on('connection', async (socket) => {
     socket.emit('connection');
     console.log('New client connected with id:', socket.id);
-    await clientManager.addClient({ socketId: socket.id, nickname: 'babar' });
+    await clientManager.addClient({ socketId: socket.id, nickname: 'babar', loginTime: Date.now() });
     await clientManager.setNickname(socket.id, 'nicky');
     console.log('new user joined so showing all clients:', clientManager.getAllClients());
 
 
-    socket.on('message', (msg) => {
+    socket.on('message', (msg: string) => {
         console.log('From', socket.id, 'received message:', msg);
+
+        if (msg === '') {
+            socket.emit('message invalid', msg, 'OMG! you haven\'t even written antyhing... Try again, but this time write something');
+            return;
+        }
+        if (msg.length > 100) {
+            socket.emit('message invalid', msg, 'Nooo!! Are you trying to write an essay? Try shortening down your message');
+            return;
+        }
         const client = clientManager.getClient(socket.id);
         console.log(client.nickname);
         const clientNickname = client.nickname;
-        io.emit('message', { content: msg, sender: clientNickname, date: Date.now() });
+        const sendTime = Date.now();
+        io.emit('new message', { content: msg, sender: clientNickname, date: sendTime });
+        clientManager.setLastActivity(socket.id, sendTime);
     });
 
     socket.on('set nickname', (nickname: string) => {
         console.log('received new sexy nickname:', nickname, 'From:', socket.id);
 
+        // Object.values(validation.nickname.invalid).some(({ invalidate, message }) => {
+        //     if (invalidate(nickname)) {
+        //         socket.emit('nickname invalid', nickname, message);
+        //         return true;
+        //     }
+        //     return false;
+        // });
+
         // make a json file or object with these error terms and messages and also if its error-, warning- or success- message
-        if (clientManager.getAllClients().map((client) => client.nickname).includes(nickname)) {
+        if (clientManager.getAllClients().some((client) => client.nickname === nickname)) {
             // socket.emit('nickname invalid', nickname, 'Reason for invalidity');
             socket.emit('nickname invalid', nickname, 'This nickname is alredy taken by another visitor');
             return;
