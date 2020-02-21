@@ -2,6 +2,7 @@ import express from 'express';
 import SocketIO from 'socket.io';
 import ClientManager from './ClientManager';
 import validation from './validation';
+import chalk from 'chalk';
 
 const clientManager = new ClientManager();
 
@@ -20,7 +21,7 @@ const server = app.listen(PORT, () => {
 const io = SocketIO(server);
 
 io.on('connection', async (socket) => {
-    console.log('welcome', socket.id);
+    console.log(chalk.bold.bgBlueBright('User', socket.id, 'connected.'));
     socket.emit('connection');
     await clientManager.addClient(socket.id, socket);
     // await clientManager.setNickname(socket.id, 'nicky');
@@ -39,7 +40,6 @@ io.on('connection', async (socket) => {
             return;
         }
         const client = clientManager.getClient(socket.id);
-        console.log(client.nickname);
         const clientNickname = client.nickname;
         const timeStamp = Date.now();
         io.emit('new message', { content: msg, sender: clientNickname, date: timeStamp });
@@ -67,7 +67,7 @@ io.on('connection', async (socket) => {
             socket.emit('nickname invalid', nickname, 'This nickname is way too short');
             return;
         }
-        if (nickname.length > 6) {
+        if (nickname.length > 10) {
             socket.emit('nickname invalid', nickname, 'This nickname is way too long');
             return;
         }
@@ -92,7 +92,7 @@ io.on('connection', async (socket) => {
 
 
     socket.on('disconnect', () => {
-        console.log('Client', socket.id, 'disconnected.');
+        console.log(chalk.bold.bgCyanBright.black('Client', socket.id, 'disconnected.'));
         clientManager.deleteClient(socket.id);
     });
 });
