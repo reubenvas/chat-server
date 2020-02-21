@@ -1,8 +1,8 @@
 import express from 'express';
 import SocketIO from 'socket.io';
+import chalk from 'chalk';
 import ClientManager from './ClientManager';
 import validation from './validation';
-import chalk from 'chalk';
 
 const clientManager = new ClientManager();
 
@@ -22,9 +22,7 @@ const io = SocketIO(server);
 
 io.on('connection', async (socket) => {
     console.log(chalk.bold.bgBlueBright('User', socket.id, 'connected.'));
-    socket.emit('connection');
-    await clientManager.addClient(socket.id, socket);
-    // await clientManager.setNickname(socket.id, 'nicky');
+    await clientManager.addClient(socket.id, socket); // remove socket.id and only add socket
     clientManager.getClient(socket.id).nickname = 'marcus';
 
 
@@ -36,14 +34,13 @@ io.on('connection', async (socket) => {
             return;
         }
         if (msg.length > 100) {
-            socket.emit('message invalid', msg, 'Nooo!! Are you trying to write an essay? Try shortening down your message');
+            socket.emit('message invalid', msg, 'Nooo!! Are you writing an essay? Try shortening down your message');
             return;
         }
-        const client = clientManager.getClient(socket.id);
-        const clientNickname = client.nickname;
-        const timeStamp = Date.now();
-        io.emit('new message', { content: msg, sender: clientNickname, date: timeStamp });
-        clientManager.setLastActivity(socket.id, timeStamp);
+        const clientNickname = clientManager.getClient(socket.id).nickname;
+        const timestamp = Date.now();
+        io.to('chat').emit('new message', { content: msg, sender: clientNickname, date: timestamp });
+        clientManager.setLastActivity(socket.id, timestamp);
     });
 
     socket.on('set nickname', (nickname: string) => {
@@ -60,7 +57,7 @@ io.on('connection', async (socket) => {
         // make a json file or object with these error terms and messages and also if its error-, warning- or success- message
         if (clientManager.getAllClients().some((client) => client.nickname === nickname)) {
             // socket.emit('nickname invalid', nickname, 'Reason for invalidity');
-            socket.emit('nickname invalid', nickname, 'This nickname is alredy taken by another visitor');
+            socket.emit('nickname invalid', nickname, 'This nickname is alredy taken by another user');
             return;
         }
         if (nickname.length < 3) {
@@ -75,13 +72,21 @@ io.on('connection', async (socket) => {
             socket.emit('nickname invalid', nickname, 'This nickname contains other characters than letters');
             return;
         }
-        socket.emit('nickname approved', nickname);
-        const timeStamp = Date.now();
-        clientManager.setNickname(socket.id, nickname);
-        clientManager.setLastActivity(socket.id, timeStamp);
-        clientManager.setLoginTime(socket.id, timeStamp);
 
-        clientManager.getClient(socket.id).startInactivityTimer();
+        socket.join('chat', (err: Error | void) => {
+            if (err) {
+                throw err;
+            }
+
+            socket.emit('nickname approved', nickname);
+
+            const timestamp = Date.now();
+
+            clientManager.setNickname(socket.id, nickname);
+            clientManager.setLastActivity(socket.id, timestamp);
+            clientManager.setLoginTime(socket.id, timestamp);
+            clientManager.getClient(socket.id).startInactivityTimer();
+        });
 
         // check double!!
         // check if nickname is unique amongst the users here and in the client

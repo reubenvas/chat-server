@@ -27,14 +27,14 @@ export default class ClientManager {
         }
     });
 
-    setLastActivity = (clientSocketId: Client['socketId'], timeStamp: number): void => {
+    setLastActivity = (clientSocketId: Client['socketId'], timestamp: number): void => {
         const index = this.findClientIndex(clientSocketId);
-        this.clients[index].lastActivity = timeStamp;
+        this.clients[index].lastActivity = timestamp;
     };
 
-    setLoginTime = (clientSocketId: Client['socketId'], timeStamp: number): void => {
+    setLoginTime = (clientSocketId: Client['socketId'], timestamp: number): void => {
         const index = this.findClientIndex(clientSocketId);
-        this.clients[index].loginTime = timeStamp;
+        this.clients[index].loginTime = timestamp;
     };
 
     deleteClient = (clientSocketId: Client['socketId']): void => {
