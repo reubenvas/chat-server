@@ -1,11 +1,4 @@
-import winston, { format } from 'winston';
-
-// const errorStackTracerFormat = winston.format((info) => {
-//     if (info.meta && info.meta instanceof Error) {
-//         info.message = `${info.message} ${info.meta.stack}`;
-//     }
-//     return info;
-// });
+import winston, { format, transports } from 'winston';
 
 const logger = winston.createLogger({
     format: format.combine(
@@ -16,15 +9,14 @@ const logger = winston.createLogger({
         format.splat(),
         format.json(),
     ),
-    defaultMeta: { service: 'your-service-name' },
     transports: [
-        new winston.transports.File({ filename: 'logs/errors.log', level: 'error' }),
-        new winston.transports.File({ filename: 'logs/combined.log' }),
+        new transports.File({ filename: 'logs/errors.log', level: 'error' }),
+        new transports.File({ filename: 'logs/combined.log' }),
     ],
 });
 
 if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
+    logger.add(new transports.Console({
         format: format.combine(
             format.colorize(),
             format.simple(),

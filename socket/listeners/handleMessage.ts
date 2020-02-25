@@ -1,5 +1,4 @@
 import ClientManager from '../../ClientManager';
-import { emitDisconnectUserEvent, emitMessageInvalidEvent } from '../emitters';
 import Client from '../../Client';
 import logger, { errorLogHandler } from '../../logger';
 
@@ -9,8 +8,8 @@ export default (
     const { isLoggedIn, nickname } = client;
 
     if (!isLoggedIn) {
-        emitDisconnectUserEvent(
-            socket,
+        socket.emit(
+            'disconnect user',
             nickname,
             'Looks like you need to log in again. Don\'t worry!',
         );
@@ -19,8 +18,8 @@ export default (
     }
 
     if (msg.length === 0) {
-        emitMessageInvalidEvent(
-            socket,
+        socket.emit(
+            'message invalid',
             msg,
             'OMG! you haven\'t even written antyhing... Try again, but this time write something',
         );
@@ -28,8 +27,8 @@ export default (
         return;
     }
     if (msg.length > 100) {
-        emitMessageInvalidEvent(
-            socket,
+        socket.emit(
+            'message invalid',
             msg,
             'Nooo!! Are you writing an essay? Try shortening down your message',
         );
@@ -38,7 +37,9 @@ export default (
     }
 
     const timestamp = Date.now();
-    io.to('chat').emit('new message', { content: msg, sender: nickname, date: timestamp });
+    io.to('chat').emit('new message', {
+        content: msg, sender: nickname, date: timestamp, type: 'message',
+    });
     setLastActivity(socket.id, timestamp);
     logger.info(`Client ${socket.id} successfully sent a message '${msg}'`);
 });

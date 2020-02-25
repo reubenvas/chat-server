@@ -1,12 +1,11 @@
 import ClientManager from '../../ClientManager';
-import { emitNicknameInvalidEvent } from '../emitters';
 import Client from '../../Client';
 import logger, { errorLogHandler } from '../../logger';
 
 export default (socket: SocketIO.Socket, client: Client, allClients: ClientManager['allClients']) => (nickname: string): void => errorLogHandler(() => {
-    if (allClients.some((c) => c.nickname === nickname)) {
-        emitNicknameInvalidEvent(
-            socket,
+    if (allClients.some((c) => c.nickname && c.nickname.toLowerCase() === nickname.toLowerCase())) {
+        socket.emit(
+            'nickname invalid',
             nickname,
             'This nickname is alredy taken by another user',
         );
@@ -15,8 +14,8 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
     }
 
     if (nickname.length < 3) {
-        emitNicknameInvalidEvent(
-            socket,
+        socket.emit(
+            'nickname invalid',
             nickname,
             'This nickname is way too short',
         );
@@ -25,8 +24,8 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
     }
 
     if (nickname.length > 10) {
-        emitNicknameInvalidEvent(
-            socket,
+        socket.emit(
+            'nickname invalid',
             nickname,
             'This nickname is way too long',
         );
@@ -35,8 +34,8 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
     }
 
     if (!/^[A-Öa-ö]+$/.test(nickname)) {
-        emitNicknameInvalidEvent(
-            socket,
+        socket.emit(
+            'nickname invalid',
             nickname,
             'This nickname contains other characters than letters',
         );

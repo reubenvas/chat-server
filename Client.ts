@@ -1,5 +1,4 @@
 import SocketIO from 'socket.io';
-import { emitNicknameApprovedEvent } from './socket/emitters';
 import logger, { errorLogHandler } from './logger';
 
 export default class Client {
@@ -27,7 +26,8 @@ export default class Client {
         this.loginTime = loginTime;
         this.lastActivity = loginTime;
         this.startInactivityTimer();
-        emitNicknameApprovedEvent(this.socket, nickname);
+        this.socket.emit('nickname approved', nickname);
+        this.socket.to('chat').emit('user joined', { content: `${nickname} joined the chat.`, type: 'notification' });
     }
 
     logOut = (): void => {
@@ -40,6 +40,18 @@ export default class Client {
     private startInactivityTimer = (): void => {
         const inactivityLimit = 2 * 60 * 1000; // 2 minutes
 
+        const disconnectInactivity = (): void => {
+            this.socket.leave('chat', (err: Error | void) => errorLogHandler(() => {
+                if (err) {
+                    throw err;
+                }
+                this.socket.emit('disconnect user', this.nickname, 'You have now been inactive for too long... Bye');
+                this.socket.broadcast.to('chat').emit('user inactivity', this.nickname, { content: `${this.nickname} had to leave due to inactivity`, type: 'notification', date: Date.now()});
+                logger.info(`Client ${this.socket.id} was disconnected because of inactivity`);
+                this.logOut();
+            }));
+        };
+
         const startRecursiveTimer = (
             firstActivityTimestamp: number, latterActivityTimestamp: number,
         ): void => {
@@ -47,15 +59,7 @@ export default class Client {
                 errorLogHandler(() => {
                     const latestActivityTimestamp = this.lastActivity as number + inactivityLimit;
                     if (latestActivityTimestamp === latterActivityTimestamp) {
-                        this.socket.leave('chat', (err: Error | void) => {
-                            if (err) {
-                                throw err;
-                            }
-                            this.socket.emit('disconnect user', this.nickname, 'You have now been inactive for too long... Bye');
-                            this.socket.broadcast.to('chat').emit('user inactivity', this.nickname, `${this.nickname} had to leave due to inactivity`);
-                            logger.info(`Client ${this.socket.id} was disconnected because of inactivity`);
-                            this.logOut();
-                        });
+                        disconnectInactivity();
                         return;
                     }
                     startRecursiveTimer(latterActivityTimestamp, latestActivityTimestamp);
@@ -67,15 +71,7 @@ export default class Client {
         setTimeout(() => {
             const latestActivityTime = this.lastActivity as number + inactivityLimit;
             if (latestActivityTime === firstActivityTime) {
-                this.socket.leave('chat', (err: Error | void) => {
-                    if (err) {
-                        throw err;
-                    }
-                    this.socket.emit('disconnect user', this.nickname, 'You have now been inactive for too long... Bye');
-                    this.socket.broadcast.to('chat').emit('user inactivity', this.nickname, `${this.nickname} had to leave due to inactivity`);
-                    logger.info(`Client ${this.socket.id} was disconnected because of inactivity`);
-                    this.logOut();
-                });
+                disconnectInactivity();
                 return;
             }
             startRecursiveTimer(firstActivityTime, latestActivityTime);

@@ -5,7 +5,7 @@ import logger, { errorLogHandler } from '../../logger';
 
 export default (socket: SocketIO.Socket, client: Client, deleteClient: ClientManager['deleteClient'], socketAlive?: boolean) => (): void => errorLogHandler(() => {
     if (client.isLoggedIn) {
-        socket.broadcast.to('chat').emit('user disconnected', client.nickname, `${client.nickname} chose to leave. Hopefully you'll meet sometime soon again.`);
+        socket.broadcast.to('chat').emit('user disconnected', client.nickname, { content: `${client.nickname} chose to leave.`, type: 'notification' });
     }
     if (socketAlive) {
         client.logOut();
