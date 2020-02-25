@@ -1,3 +1,6 @@
+// TODO: remove all emitters and let the functions call socket.emit('xxx') instead
+
+
 export const emitDisconnectUserEvent = (
     socket: SocketIO.Socket, nickname: string | undefined, message: string,
 ): void => {

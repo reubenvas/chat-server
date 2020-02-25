@@ -10,7 +10,7 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
             nickname,
             'This nickname is alredy taken by another user',
         );
-        logger.info(`Client ${socket.id} tried to set the nickname "${nickname}" but it was taken by another user`);
+        logger.info(`Client ${socket.id} tried to set the nickname '${nickname}' but it was taken by another user`);
         return;
     }
 
@@ -20,7 +20,7 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
             nickname,
             'This nickname is way too short',
         );
-        logger.info(`Client ${socket.id} tried to set the nickname "${nickname}" but it is too short`);
+        logger.info(`Client ${socket.id} tried to set the nickname '${nickname}' but it is too short`);
         return;
     }
 
@@ -30,7 +30,7 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
             nickname,
             'This nickname is way too long',
         );
-        logger.info(`Client ${socket.id} tried to set the nickname "${nickname}" but it is too long`);
+        logger.info(`Client ${socket.id} tried to set the nickname '${nickname}' but it is too long`);
         return;
     }
 
@@ -40,7 +40,7 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
             nickname,
             'This nickname contains other characters than letters',
         );
-        logger.info(`Client ${socket.id} tried to set the nickname "${nickname}" but it contains other characters than letters`);
+        logger.info(`Client ${socket.id} tried to set the nickname '${nickname}' but it contains other characters than letters`);
         return;
     }
 
@@ -49,6 +49,6 @@ export default (socket: SocketIO.Socket, client: Client, allClients: ClientManag
             throw err;
         }
         client.logIn(nickname, Date.now());
-        logger.info(`Client ${socket.id} successfully set the nickname "${nickname}"`);
+        logger.info(`Client ${socket.id} successfully set the nickname '${nickname}'"`);
     }));
 });

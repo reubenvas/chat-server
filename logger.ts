@@ -35,12 +35,15 @@ if (process.env.NODE_ENV !== 'production') {
     }));
 }
 
-export const errorLogHandler = (func: Function): void => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const errorLogHandler = (func: () => any): any => {
+    let returnVal;
     try {
-        func();
+        returnVal = func();
     } catch (err) {
         logger.error(new Error(err));
     }
+    return returnVal;
 };
 
 export default logger;

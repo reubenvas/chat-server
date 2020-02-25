@@ -1,19 +1,21 @@
 import SocketIO from 'socket.io';
 import supervisSocketConnection from './socket/superviseSocketConnection';
+import logger from './logger';
 
 const PORT = process.env.PORT || 8000;
 const io = SocketIO(PORT);
+logger.info(`Server started on port: ${PORT}`);
 
 supervisSocketConnection(io);
 
 process.on('SIGINT', () => {
-    console.info('SIGINT signal received.');
+    logger.info('Server terminated on received SIGINT signal');
     io.close(() => {
         process.exit(0);
     });
 });
 process.on('SIGTERM', () => {
-    console.info('SIGTERM signal received.');
+    logger.info('Server terminated on received SIGTERM signal');
     io.close(() => {
         process.exit(0);
     });
