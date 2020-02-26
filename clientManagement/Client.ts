@@ -1,5 +1,5 @@
 import SocketIO from 'socket.io';
-import logger, { errorLogHandler } from './logger';
+import logger, { errorLogHandler } from '../logger';
 
 export default class Client {
     constructor(socket: SocketIO.Socket) {
@@ -21,20 +21,24 @@ export default class Client {
         return !!this.nickname && !!this.loginTime;
     }
 
-    logIn = (nickname: string, loginTime: number): void => {
+    logIn = (nickname: string, nicknamesOnline: string[], loginTime: number): void => {
         this.nickname = nickname;
         this.loginTime = loginTime;
         this.lastActivity = loginTime;
         this.startInactivityTimer();
-        this.socket.emit('nickname approved', nickname);
-        this.socket.to('chat').emit('user joined', { content: `${nickname} joined the chat.`, type: 'notification' });
+        this.socket.emit('nickname approved', nickname, nicknamesOnline, loginTime);
+        this.socket.to('chat').emit('user joined', { content: `${nickname} joined the chat.`, type: 'notification', date: loginTime });
     }
 
     logOut = (): void => {
         this.nickname = undefined;
         this.loginTime = undefined;
         this.lastActivity = undefined;
-        this.socket.leave('chat');
+        this.socket.leave('chat', (err: Error | void) => errorLogHandler(() => {
+            if (err) {
+                throw err;
+            }
+        }));
     }
 
     private startInactivityTimer = (): void => {
@@ -45,8 +49,8 @@ export default class Client {
                 if (err) {
                     throw err;
                 }
-                this.socket.emit('disconnect user', this.nickname, 'You have now been inactive for too long... Bye');
-                this.socket.broadcast.to('chat').emit('user inactivity', this.nickname, { content: `${this.nickname} had to leave due to inactivity`, type: 'notification', date: Date.now()});
+                this.socket.emit('disconnect user', 'You have now been inactive for too long... Bye');
+                this.socket.broadcast.to('chat').emit('user disconnected', { content: `${this.nickname} had to leave due to inactivity`, type: 'notification', date: Date.now() });
                 logger.info(`Client ${this.socket.id} was disconnected because of inactivity`);
                 this.logOut();
             }));

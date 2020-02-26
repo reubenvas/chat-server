@@ -1,4 +1,4 @@
-import ClientManager from '../ClientManager';
+import ClientManager from '../clientManagement/ClientManager';
 import handleMessage from './listeners/handleMessage';
 import handleNickname from './listeners/handleNickname';
 import handleDisconnect from './listeners/handleDisconnect';
@@ -17,7 +17,7 @@ export default (io: SocketIO.Server): void => {
             const client = getClient(socket.id);
             socket.on('message', handleMessage(io, socket, client, setLastActivity));
             socket.on('set nickname', handleNickname(socket, client, allClients));
-            socket.on('disconnect user', handleDisconnect(socket, client, deleteClient, true));
+            socket.on('disconnect user', handleDisconnect(socket, client));
             socket.on('disconnect', handleDisconnect(socket, client, deleteClient));
         });
     });

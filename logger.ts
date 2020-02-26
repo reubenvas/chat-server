@@ -29,7 +29,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const errorLogHandler = (func: () => any): any => {
-    let returnVal;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let returnVal: (() => any) | null = null;
     try {
         returnVal = func();
     } catch (err) {

@@ -1,22 +1,19 @@
 import SocketIO from 'socket.io';
-import supervisSocketConnection from './socket/superviseSocketConnection';
+import superviseSocketConnection from './socket/superviseSocketConnection';
 import logger from './logger';
 
 const PORT = process.env.PORT || 8000;
 const io = SocketIO(PORT);
 logger.info(`Server started on port: ${PORT}`);
 
-supervisSocketConnection(io);
+superviseSocketConnection(io);
 
-process.on('SIGINT', () => {
-    logger.info('Server terminated on received SIGINT signal');
+const gracefulShutDown = (signal: string) => (): void => {
+    logger.info(`Server terminated on received ${signal} signal`);
     io.close(() => {
         process.exit(0);
     });
-});
-process.on('SIGTERM', () => {
-    logger.info('Server terminated on received SIGTERM signal');
-    io.close(() => {
-        process.exit(0);
-    });
-});
+};
+
+process.on('SIGINT', gracefulShutDown('SIGINT'));
+process.on('SIGTERM', gracefulShutDown('SIGTERM'));

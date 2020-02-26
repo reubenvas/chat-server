@@ -1,13 +1,13 @@
-import Client from '../../Client';
-import ClientManager from '../../ClientManager';
+import Client from '../../clientManagement/Client';
+import ClientManager from '../../clientManagement/ClientManager';
 import logger, { errorLogHandler } from '../../logger';
 
 
-export default (socket: SocketIO.Socket, client: Client, deleteClient: ClientManager['deleteClient'], socketAlive?: boolean) => (): void => errorLogHandler(() => {
+export default (socket: SocketIO.Socket, client: Client, deleteClient?: ClientManager['deleteClient']) => (): void => errorLogHandler(() => {
     if (client.isLoggedIn) {
-        socket.broadcast.to('chat').emit('user disconnected', client.nickname, { content: `${client.nickname} chose to leave.`, type: 'notification' });
+        socket.broadcast.to('chat').emit('user disconnected', { content: `${client.nickname} chose to leave.`, type: 'notification', date: Date.now() });
     }
-    if (socketAlive) {
+    if (!deleteClient) {
         client.logOut();
         logger.info(`Client ${socket.id} left chat session but is still connected with socket`);
         return;

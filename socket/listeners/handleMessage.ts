@@ -1,5 +1,5 @@
-import ClientManager from '../../ClientManager';
-import Client from '../../Client';
+import ClientManager from '../../clientManagement/ClientManager';
+import Client from '../../clientManagement/Client';
 import logger, { errorLogHandler } from '../../logger';
 
 export default (
@@ -10,7 +10,6 @@ export default (
     if (!isLoggedIn) {
         socket.emit(
             'disconnect user',
-            nickname,
             'Looks like you need to log in again. Don\'t worry!',
         );
         logger.info(`Client ${socket.id} tried to send a message '${msg}' without being logged in. Emitting disconnect event`);
@@ -20,7 +19,6 @@ export default (
     if (msg.length === 0) {
         socket.emit(
             'message invalid',
-            msg,
             'OMG! you haven\'t even written antyhing... Try again, but this time write something',
         );
         logger.info(`Client ${socket.id} tried to send a an empty message`);
@@ -29,7 +27,6 @@ export default (
     if (msg.length > 100) {
         socket.emit(
             'message invalid',
-            msg,
             'Nooo!! Are you writing an essay? Try shortening down your message',
         );
         logger.info(`Client ${socket.id} tried to send a message '${msg}' with too many characters`);
