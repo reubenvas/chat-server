@@ -8,7 +8,7 @@
     "start": "ts-node server.ts",
     "start:dev": "nodemon server.ts",
     "lint": "eslint --ext .js,.ts .",
-    "delete-logs": "rm -rf ./logs/*",
+    "delete-logs": "rm -rf ./logs/*"
   },
   "keywords": [],
   "author": "",
