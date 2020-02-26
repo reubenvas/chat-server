@@ -5,10 +5,10 @@
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.ts",
+    "start": "ts-node server.ts"
+    "start:dev": "nodemon server.ts",
     "lint": "eslint --ext .js,.ts .",
     "delete-logs": "rm -rf ./logs/*",
-    "s": "ts-node server.ts"
   },
   "keywords": [],
   "author": "",
